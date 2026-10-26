@@ -1,0 +1,28 @@
+
+# Python virtual environment
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Generated or recovered image files
+recovered_*.jpg
+recovered_*.png
+
+# Database backups
+*.dump
+*.sql.gz
+
+# macOS files
+.DS_Store
+
+#Local backup of older application code
+main_before_keycloak.py
+
+#python test output and temporary files
+.python_cache/

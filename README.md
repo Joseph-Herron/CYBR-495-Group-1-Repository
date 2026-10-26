@@ -155,4 +155,37 @@ Testing will verify that:
     - Unauthorized request cannot retrieve protected keys
 
 
-    Expected Results????
+## Authentication and Role-Based Access Control (RBAC)
+
+### Overview
+The project uses Keycloak for user authentication and FastAPI for role-based authorization. Users must provide a valid Keycloak access token to access protected API endpoints.
+
+### Configured Roles
+- **Admin:** Can list satellite images and retrieve images.
+- **Analyst:** Can list satellite images and retrieve images.
+- **Viewer:** Can retrieve individual satellite images but cannot access the image listing endpoint.
+
+### Protected API Endpoints
+- `GET /images` — Accessible to Admin and Analyst roles.
+- `GET /images/{image_id}/view` — Accessible to Admin, Analyst, and Viewer roles.
+
+### Security Testing Results
+
+| Test | Expected Result | Actual Result |
+|---|---|---|
+| Admin lists images | HTTP 200 | Passed |
+| Analyst lists images | HTTP 200 | Passed |
+| Viewer lists images | HTTP 403 | Passed |
+| Viewer retrieves image 1 | HTTP 200 | Passed |
+| Request without an access token | HTTP 401 | Passed |
+
+
+
+### Results
+
+Testing confirmed that Keycloak-issued access tokens are accepted by the API and that endpoint access is restricted according to the user's assigned role. Unauthorized requests are rejected, while permitted requests succeed.
+
+*Note: These results reflect the tests completed so far. Additional testing is needed to verify all role and endpoint combinations.*
+
+
+*Note: These results reflect the tests completed so far. Additional testing is needed to verify all role and endpoint combinations.*

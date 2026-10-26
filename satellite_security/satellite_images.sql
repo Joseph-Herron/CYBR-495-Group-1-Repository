@@ -1,10 +1,5 @@
-CREATE TABLE [dbo].[satellite_images]
-(
-  [Id] INT NOT NULL PRIMARY KEY
-)
-SELECT * FROM satellite_images;
 
-CREATE TABLE satellite_images(
+CREATE TABLE IF NOT EXISTS satellite_images (
     image_id INTEGER PRIMARY KEY,
     product_name VARCHAR(255) NOT NULL,
     satellite VARCHAR(50),
@@ -12,5 +7,7 @@ CREATE TABLE satellite_images(
     tile_id VARCHAR(20),
     cloud_cover REAL,
     encrypted_image BYTEA,
+    encryption_nonce BYTEA,
+    encrypted_key TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
