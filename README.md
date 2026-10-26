@@ -1,191 +1,152 @@
-            Project Description:
-Consist on the development of a secure database system for storing and managing sensitive satellite imagery and associated metadata. Satellite images can contain sensitive geographic information, including coordinates, timestamps, and other information that could potentially be misused if accessed by unauthorized indivuals .
+# Secure Satellite Image Database
 
-This system will implement multiple layers of security to protect this information. These security measures will include encryption, secure encryption key management, authentication, role - based access control(RBAC), and potentially location - based access control (LBAC).
+## Project Description
 
-Sponsors- Dr. Wang & Dr. Pharris will represent us as our sponsors giving us guidance, feedback, and oversight throught the development process
+This project develops a secure database system for storing and managing satellite imagery and its associated metadata. Satellite imagery can contain sensitive geographic information, including coordinates, timestamps, and other details that could be misused if accessed by unauthorized individuals.
 
-            Project Objectives:
-1.Develop a secure database for storing satellite imagery and metadata.
-2.Encrypt sensitive satellite images and metadata before they are stored.
-3.Protect encryption keys using a dedicated secrets- management system.
-4.Implement authentication for users accessing the system. 
-5.Implement role - based access control for different categories of users. 
-6.Restricts users from accessing data outside their assigned permissions.
-7.Detect any unauthorized midufucation without altering or tampering stored data.
-8.Testing the system against simulated database breaches and unauthorized access attempts.
-9.Explore the possibilty of using geographic restrictions to control access to satellite data.
- 
-            Scope of project:
-    Encryption - system will provide functionally for
-Encrypting satellite images & ,metadata. 
-Decrypting data for authorized users.
-Preventing unauthorized users from accessing plaintext data.
-Seperating encryption key management from the primary database(Encrypted keys wil not be stored alongside the encrypted satellite data).
+The system uses multiple layers of security, including image encryption, secure encryption key management, user authentication, role-based access control (RBAC), and security event logging.
 
-    Access control 
-This system will implement role-based access control using three primary roles.
-    1.Administrator
-Administrator will have the highest level of access.
-Their permissions will consists of:
-    - Create and manage users
-    - Assign roles
-    - Manage access permissions
-    - Upload satellite data
-    - View satallite data
-    - Delete or modify authorized data
-    - Manage system configuration
+**Sponsors:** Dr. Wang and Dr. Pharris
 
-    2.Analyst
-Analyst will have access to data required for analysis but will have fewer priviliges than a administrator.
-Their permissions will consist of:
-    - View authorized satellite imagery 
-    - Accessed authorized metadata.
-    - Perform analysis on satellite imagery
-    - Search for satellite data
-    - Download or process authorized data
+## Project Objectives
 
-    Analyst wil not have administrative priviliges or access to encryption keys. 
+1. Develop a secure database for satellite imagery and associated metadata.
+2. Encrypt satellite images before storing them in the database.
+3. Protect encryption keys using a dedicated secrets-management system.
+4. Authenticate users accessing the application.
+5. Enforce role-based access control for administrators, analysts, and viewers.
+6. Restrict access to data according to assigned permissions.
+7. Detect unauthorized modifications to encrypted data.
+8. Test the system against simulated database exposure and unauthorized access attempts.
+9. Explore geographic restrictions for controlling access to satellite data.
 
-    3.Viewer
-Viewers will have the most restricted access.
-Their permissions will consist of: 
-    - View authorized satellite imagery
-    - View non-sensitive metadata
-    
-    Viewers will not be able to modify data, manage users, or access the encryption keys.
+## Technical Architecture
 
+### Python and FastAPI
 
+Python and FastAPI provide the backend API that connects users, authentication services, the database, and encryption services.
 
-            Technical Approach:
- 1.Python + FastAPI  - Backend
-Python will be our pimary programming language.
-FastAPI will be used to develop the backend API responsible for communicating between users, authentication services, the database, and security components. 
-The backend will be responsible for 
-    - Processing API request
-    - Authenticating users. 
-    - Checking user permissions 
-    - Encrypting and decrypting data 
-    - Enforcing access - control policies
-    - Logging security - related events 
-    (Maybe communicating with Postgre SQL & HashiCorp Vault)
-2.Database -PostgreSQL
-PostgreSQL will be used as the primary database.
-Database will store information such as: 
-    - Encrypted satellite images & Metadata
-    - Image Identifiers?
-    - User - related information required by the application
-    - Geographic information 
-    - Timestamps ?
-    - Access control information
+The backend is responsible for:
+- Processing API requests.
+- Validating authentication tokens.
+- Enforcing role-based authorization.
+- Retrieving and decrypting authorized satellite imagery.
+- Communicating with PostgreSQL and HashiCorp Vault.
+- Recording security-related events.
 
+### PostgreSQL
 
-3.Encryption and key management -HashiCorp Vault
-HashiCorp Vault will be used for managing and protecting encryption keys and other secrets.
-We will use the Vault as a way to seperate encryption key- management from the PostgreSQL databse. 
-        Idea of the process
-1.User uploads satellite data. 
-2.The FastAPI backend recieves the data.
-3.The backend request the appropiate encryption key from Vault.
-4.Satellite images and sensitive metadata  are encrpyted.
-5.Encrypted data is stored in PostgreSQL.
-6.Key remains protected by the Vault.
-7.When a authorized user request the data, the backend retrieves the required key from the Vault.
-8.The backend decrypts the data
-9.The user recives the authorized data
+PostgreSQL is the primary database. It stores satellite image records, associated metadata, encrypted image data, encryption nonces, Vault-protected encryption keys, and access logs.
 
-To sum that up Users should not have direct access to th encryption keys
+The database includes three main tables:
+- `satellite_images` — image identifiers, product information, encrypted image data, and encryption-related fields.
+- `satellite_metadata` — geographic coordinates, sensing timestamps, tile identifiers, and orbit information.
+- `access_logs` — usernames, roles, actions, requested resources, HTTP status codes, and timestamps.
 
-4.Keycloak 
-Keycloak will be used for authentication and role management.
+### Image Encryption and Key Management
 
-Keycloak services provide: 
-    - User authentication
-    - User accounts
-    - Role assignments
-    - Access tokens
-    - Authentication management 
-This application will enforc permissions on the backend.
+The application uses AES-GCM to encrypt satellite image data. HashiCorp Vault Transit protects the encryption keys separately from the application's image-encryption process.
 
-5.Geospatial Processing - GeoPandas
-GeoPandas may be used to process geographic information associated with satellite imagery. 
-Ways it can be used: 
-    - Processing geographic coordinates
-    - Working with geographic boundaries
-    - Determining wheter coordinates fall within authorized regions
-    - Supporting location - based access control
-    - Filtering satellite images by geographic area
+The general workflow is:
 
+1. The application receives satellite image data.
+2. The image is encrypted using AES-GCM.
+3. Vault Transit protects the image's encryption key.
+4. The encrypted image, nonce, and Vault-protected key are stored in PostgreSQL.
+5. When an authorized user requests an image, the backend retrieves the encrypted data.
+6. The backend uses Vault to recover the encryption key and decrypt the image.
+7. The application returns the recovered image only after authorization succeeds.
 
+Plaintext encryption keys are not stored in PostgreSQL. The stored `encrypted_key` field contains a Vault-protected key rather than the plaintext key.
 
-Testing: 
+**Current implementation note:** Image encryption is implemented and verified. Sensitive metadata fields are currently represented in the database schema, but encryption of those fields should be treated as future work until implemented and tested.
 
-1.Encryption/Decryption — Verify encrypted images and metadata can be accurately recovered by authorized users.We will test this throughout the 10 weeks rather than just the end of the project
+### Keycloak Authentication and RBAC
 
-Testing this shall verify that: 
-    - Encrypted files cannot be interpereted as plaintext​
-    - Authorized users can recover original data
-    - Decryption produces the correct original file
-    - Incorrect or unauthorized keys cannot decrypt data
+Keycloak handles user authentication and role assignments. FastAPI checks the user's token and enforces authorization rules for protected endpoints.
 
-2.Database Breach Simulation — Confirm stolen database contents do not reveal sensitive plaintext data. ​
-Testing this will verify that: 
-    - Senesitive information isn't stored as plaintext
-    - Encrption kets aren't stored in the database
-    - Stolen database contents cannt easily be converted back into the original satellite data
+The three configured roles are:
 
+- **Admin:** Can list satellite images and retrieve individual images.
+- **Analyst:** Can list satellite images and retrieve individual images.
+- **Viewer:** Can retrieve individual satellite images but cannot access the image-listing endpoint.
 
-3.RBAC Testing — Verify Admin, Analyst, and Viewer permissions are correctly enforced. We will do this by testing them all seperatly and make sure Admins can access administrative functions, Viewers can't modify data, and make sure Analyst aren't able to access information outside their permissions. 
+The current API permissions are:
 
+| Endpoint | Authorized roles |
+|---|---|
+| `GET /images` | Admin, Analyst |
+| `GET /images/{image_id}/view` | Admin, Analyst, Viewer |
 
-4.Tamper Detection — Encrypted data will be intentionally modified to determine if the system notice these unauthorized changes.
-When it's successful it will prove that: 
-    - Modified encrypted data is detected
-    - Invalid data is not silently accepted
-    - System doesn't return corrupted plaintext as valid data
+These permissions describe the currently implemented API behavior; additional administrative functions and finer-grained permissions remain outside the verified endpoint set.
 
+### Access Logging
 
-5.Unauthorized Access — Many attempts will be made to bypass Authentication, Role restricions, Data permissions, Geographic restrictions, API authorization checks 
+The application records security-related events in PostgreSQL, including successful image retrievals, image-list requests, authorization denials, authentication failures, and missing-image requests.
 
-6.Key management testing 
-Testing will verify that: 
-    - Encryption keys aren't stored in PostgreSQL
-    - Users can't directly retrieve encryption keys 
-    - Application retireves keys only when it has to
-    - Unauthorized request cannot retrieve protected keys
+These records support auditing and help identify unsuccessful or unauthorized access attempts.
 
+### Geospatial Processing — Planned
 
-## Authentication and Role-Based Access Control (RBAC)
+GeoPandas may be incorporated to process geographic coordinates, work with geographic boundaries, and support location-based access control.
 
-### Overview
-The project uses Keycloak for user authentication and FastAPI for role-based authorization. Users must provide a valid Keycloak access token to access protected API endpoints.
+Geographic restrictions have not yet been verified as an implemented feature.
 
-### Configured Roles
-- **Admin:** Can list satellite images and retrieve images.
-- **Analyst:** Can list satellite images and retrieve images.
-- **Viewer:** Can retrieve individual satellite images but cannot access the image listing endpoint.
+## Dataset
 
-### Protected API Endpoints
-- `GET /images` — Accessible to Admin and Analyst roles.
-- `GET /images/{image_id}/view` — Accessible to Admin, Analyst, and Viewer roles.
+The project uses satellite imagery and associated metadata, including geographic coordinates, sensing times, tile identifiers, processing levels, and cloud-cover information.
 
-### Security Testing Results
+The current test dataset contains 20 satellite images. Image records and their metadata are maintained in PostgreSQL.
 
-| Test | Expected Result | Actual Result |
+## Implementation and Testing Results
+
+### Encryption and Decryption
+
+- All 20 satellite images were encrypted.
+- A verification script compared the original images with the recovered, decrypted files using SHA-256 hashes.
+- **Result:** 20 matching hashes, zero mismatches, and zero errors.
+
+### Authentication and Role-Based Access Control
+
+The following API tests have passed:
+
+| Test | Expected result | Result |
 |---|---|---|
 | Admin lists images | HTTP 200 | Passed |
 | Analyst lists images | HTTP 200 | Passed |
 | Viewer lists images | HTTP 403 | Passed |
 | Viewer retrieves image 1 | HTTP 200 | Passed |
 | Request without an access token | HTTP 401 | Passed |
+| Authenticated request for a nonexistent image | HTTP 404 | Passed |
 
+### Access Logging
 
+Tests confirmed that the application records successful retrievals, permitted listing requests, denied requests, authentication failures, and requests for nonexistent images.
 
-### Results
+### Remaining Security Tests
 
-Testing confirmed that Keycloak-issued access tokens are accepted by the API and that endpoint access is restricted according to the user's assigned role. Unauthorized requests are rejected, while permitted requests succeed.
+The following areas require additional testing or implementation before they can be reported as complete:
 
-*Note: These results reflect the tests completed so far. Additional testing is needed to verify all role and endpoint combinations.*
+- **Database exposure:** Verify that a database-only copy does not reveal plaintext satellite imagery or plaintext encryption keys.
+- **Tamper detection:** Modify encrypted image data and verify that AES-GCM authentication rejects the altered ciphertext.
+- **Key management:** Test behavior when Vault is unavailable and verify that unauthorized requests cannot obtain protected keys.
+- **Metadata protection:** Determine which metadata fields require encryption and implement and test that protection.
+- **Location-based access control:** Implement geographic restrictions if time permits.
 
+## Future Work
 
-*Note: These results reflect the tests completed so far. Additional testing is needed to verify all role and endpoint combinations.*
+Potential extensions include location-based access control, AI-assisted satellite image analysis, expanded administrative functionality, and additional security testing.
+
+## Technology Stack
+
+- **Language:** Python
+- **Backend API:** FastAPI
+- **Database:** PostgreSQL
+- **Image encryption:** AES-GCM
+- **Encryption key protection:** HashiCorp Vault Transit
+- **Authentication and roles:** Keycloak
+- **Potential geospatial extension:** GeoPandas
+
+## Project Sponsors
+
+Dr. Wang will provide project guidance, feedback, and oversight throughout development.
