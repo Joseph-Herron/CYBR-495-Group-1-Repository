@@ -123,12 +123,13 @@ The following API tests have passed:
 
 Tests confirmed that the application records successful retrievals, permitted listing requests, denied requests, authentication failures, and requests for nonexistent images.
 
+
 ### Remaining Security Tests
 
 The following areas require additional testing or implementation before they can be reported as complete:
 
 - **Database exposure:** Verify that a database-only copy does not reveal plaintext satellite imagery or plaintext encryption keys.
-- **Tamper detection:** Modify encrypted image data and verify that AES-GCM authentication rejects the altered ciphertext.
+- **Stored-image tamper detection:** The AES-GCM tamper-detection test passed using temporary sample data. Testing tampering against an actual encrypted image stored in PostgreSQL remains future work.
 - **Key management:** Test behavior when Vault is unavailable and verify that unauthorized requests cannot obtain protected keys.
 - **Metadata protection:** Determine which metadata fields require encryption and implement and test that protection.
 - **Location-based access control:** Implement geographic restrictions if time permits.
