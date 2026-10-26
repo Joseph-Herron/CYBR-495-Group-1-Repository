@@ -26,3 +26,7 @@ main_before_keycloak.py
 
 #python test output and temporary files
 .python_cache/
+
+# Compiled executables
+/main
+/a.out
