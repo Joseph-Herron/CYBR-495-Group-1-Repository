@@ -31,16 +31,17 @@ security = HTTPBearer(auto_error=False)
 def get_connection():
     password = os.getenv("DB_PASSWORD")
 
-    if not password:
-        raise RuntimeError("DB_PASSWORD is not set")
+    connection_args = {
+        "dbname": "satellite_security",
+        "user": "postgres",
+        "port": 5432,
+    }
 
-    return psycopg2.connect(
-        dbname="satellite_security",
-        host="localhost",
-        user="postgres",
-        password=password,
-        port=5432,
-    )
+    if password:
+        connection_args["host"] = "localhost"
+        connection_args["password"] = password
+
+    return psycopg2.connect(**connection_args)
 
 
 # Record API access in PostgreSQL
@@ -380,7 +381,15 @@ def view_image(
     except Exception as e:
         print(f"Image error: {e!r}")
 
+        log_access(
+            username=user.get("username", "unknown"),
+            user_role=", ".join(user.get("roles", [])),
+            action="image_retrieval_failed",
+            resource=f"/images/{image_id}/view",
+            status_code=503,
+        )
+
         raise HTTPException(
-            status_code=500,
-            detail="Image retrieval or decryption failed",
+            status_code=503,
+            detail="Image service temporarily unavailable",
         )
