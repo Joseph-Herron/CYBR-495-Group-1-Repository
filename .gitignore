@@ -30,3 +30,8 @@ main_before_keycloak.py
 # Compiled executables
 /main
 /a.out
+# Local Keycloak recovery backups - never commit
+keycloak-current-backup/
+keycloak-data-backup/
+keycloak-recovery-data/
+keycloakdb-original-check.mv.db

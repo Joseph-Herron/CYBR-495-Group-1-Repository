@@ -6,7 +6,6 @@ This project develops a secure database system for storing and managing satellit
 
 The system uses multiple layers of security, including image encryption, secure encryption key management, user authentication, role-based access control (RBAC), and security event logging.
 
-**Sponsors:** Dr. Wang and Dr. Pharris
 
 ## Project Objectives
 
@@ -150,4 +149,4 @@ Potential extensions include location-based access control, AI-assisted satellit
 
 ## Project Sponsors
 
-Dr. Wang will provide project guidance, feedback, and oversight throughout development.
+Project sponsorship information can be added here if required for the final submission.
