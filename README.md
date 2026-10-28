@@ -1,4 +1,4 @@
-# Secure Satellite Image Database
+# CYBR495 Senior Design Project: Secure Satellite Image Database
 
 ## Project Overview
 
