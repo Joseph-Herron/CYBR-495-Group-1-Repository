@@ -6,7 +6,7 @@ This project develops a secure database system for storing and managing satellit
 
 The system uses multiple layers of security, including image encryption, secure encryption key management, user authentication, role-based access control (RBAC), and security event logging.
 
-**Sponsors:** Dr. Wang
+**Sponsor:** Dr. Wang
 
 ## Project Objectives
 
