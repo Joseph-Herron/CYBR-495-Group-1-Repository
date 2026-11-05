@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Satellite Security System</title>
+
+    <style>
+        /* This section controls the appearance of the website. */
+
+        /* This sets the font and background color of the page. */
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+        }
+
+        /* This creates the dark blue heading at the top. */
+        header {
+            background: #172b4d;
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        /* This controls the size and spacing of the main content. */
+        main {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        /* This creates white boxes for different website sections. */
+        .card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        /* This controls the appearance of the login input field. */
+        input {
+            padding: 10px;
+            width: 90%;
+            margin-bottom: 10px;
+        }
+
+        /* This controls the appearance of the website buttons. */
+        button {
+            background: #172b4d;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px 5px 5px 0;
+        }
+
+        /* This creates a separate box for each satellite image. */
+        .image {
+            background: #f4f6f9;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- This section displays the name and purpose of the project. -->
+    <header>
+        <h1>Secure Satellite Image Database</h1>
+        <p>Satellite Image Protection and Access Control</p>
+    </header>
+
+    <main>
+
+        <!-- This section displays the system status and encryption method. -->
+        <div class="card">
+            <h2>Dashboard</h2>
+            <p>Welcome to the Satellite Security System.</p>
+            <p>Encryption: AES-GCM</p>
+            <p id="status">Backend: Checking...</p>
+        </div>
+
+        <!-- This section allows users to provide their Keycloak access token. -->
+        <!-- The token is used to check if the user has permission to access images. -->
+        <div class="card">
+            <h2>User Authentication</h2>
+            <p>Enter your Keycloak access token.</p>
+
+            <input type="password" id="token"
+                   placeholder="Access token">
+
+            <button onclick="loadImages()">Load Images</button>
+            <p id="message"></p>
+        </div>
+
+        <!-- This section displays satellite images that the user can access. -->
+        <!-- Image information is requested from the Python backend. -->
+        <div class="card">
+            <h2>Satellite Image Library</h2>
+            <p>Authorized satellite images appear below.</p>
+
+            <div id="images"></div>
+        </div>
+
+        <!-- This section lists the security technologies used in the project. -->
+        <div class="card">
+            <h2>Security Features</h2>
+            <p>AES-GCM Image Encryption</p>
+            <p>HashiCorp Vault Key Protection</p>
+            <p>Keycloak Authentication</p>
+            <p>Role-Based Access Control</p>
+            <p>Security Access Logging</p>
+        </div>
+
+    </main>
+
+    <script>
+        // This checks whether the Python backend is running.
+        // The server returns a status that is displayed on the dashboard.
+        fetch("/health")
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("status").innerText =
+                    "Backend: " + data.status;
+            })
+            .catch(() => {
+                document.getElementById("status").innerText =
+                    "Backend: Not connected";
+            });
+
+        // This function gets the access token entered by the user.
+        // The token is sent to the backend when requesting satellite images.
+        function getToken() {
+            return document.getElementById("token").value.trim();
+        }
+
+        // This function requests the list of satellite images.
+        // The backend checks the user's token and permissions before returning data.
+        async function loadImages() {
+            let token = getToken();
+            let message = document.getElementById("message");
+            let images = document.getElementById("images");
+
+            // Clear the previous image list.
+            images.innerHTML = "";
+
+            // Make sure the user entered an access token.
+            if (!token) {
+                message.innerText = "Enter an access token first.";
+                return;
+            }
+
+            message.innerText = "Loading images...";
+
+            try {
+                // Request satellite image information from the backend.
+                let res = await fetch("/images", {
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                });
+
+                // Display an error if the request is denied or fails.
+                if (!res.ok) {
+                    message.innerText =
+                        "Unable to load images. Error: " + res.status;
+                    return;
+                }
+
+                // Read the image information returned by the backend.
+                let data = await res.json();
+                message.innerText = data.length + " images found.";
+
+                // Create a separate section for each satellite image.
+                data.forEach(image => {
+                    let box = document.createElement("div");
+                    box.className = "image";
+
+                    // Display the name of the satellite image.
+                    let name = document.createElement("p");
+                    name.innerText =
+                        image.product_name || "Satellite Image";
+
+                    // Display the image ID and satellite information.
+                    let details = document.createElement("p");
+                    details.innerText =
+                        "ID: " + image.image_id +
+                        " | Satellite: " + (image.satellite || "Unknown");
+
+                    // Create a button to download the decrypted image.
+                    let button = document.createElement("button");
+                    button.innerText = "Download Image";
+                    button.onclick = () => downloadImage(image.image_id);
+
+                    // Add the image information and button to the website.
+                    box.appendChild(name);
+                    box.appendChild(details);
+                    box.appendChild(button);
+                    images.appendChild(box);
+                });
+
+            } catch (error) {
+                // Display an error if the website cannot reach the server.
+                message.innerText = "Could not reach the backend.";
+            }
+        }
+
+        // This function requests a decrypted satellite image.
+        // The backend checks the user's permissions before allowing the download.
+        async function downloadImage(id) {
+            let message = document.getElementById("message");
+
+            try {
+                // Request the image using its ID and the user's access token.
+                let res = await fetch("/images/" + id + "/view", {
+                    headers: {
+                        "Authorization": "Bearer " + getToken()
+                    }
+                });
+
+                // Stop the download if the backend denies the request.
+                if (!res.ok) {
+                    message.innerText =
+                        "Download failed. Error: " + res.status;
+                    return;
+                }
+
+                // Read the image returned by the backend.
+                let file = await res.blob();
+
+                // Create a temporary download link for the image.
+                let link = document.createElement("a");
+                let url = URL.createObjectURL(file);
+
+                link.href = url;
+                link.download = "satellite_" + id;
+                link.click();
+
+                // Remove the temporary download link after it is used.
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+                message.innerText = "Image downloaded.";
+
+            } catch (error) {
+                // Display an error if the download cannot be completed.
+                message.innerText = "Download failed.";
+            }
+        }
+    </script>
+
+</body>
+</html>
